@@ -12,6 +12,12 @@ func main(){
 		return
 	}
 	conn.Write([]byte("hello"))
+
+	p := &Proto{}
+	p.ReadTcp(conn)
+	fmt.Println(p.Operation)
+	fmt.Println(p.SeqId)
+	fmt.Println(p.Ver)
 	select {
 
 	}

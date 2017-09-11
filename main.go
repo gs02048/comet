@@ -58,7 +58,6 @@ func tcpListen(bind string){
 
 func handleTcpConn(conn net.Conn){
 	log.Info("hello")
-	go write(conn)
 	for{
 		var msg [100]byte
 		n,err := conn.Read(msg[0:])
@@ -67,15 +66,16 @@ func handleTcpConn(conn net.Conn){
 			break
 		}
 		log.Debug("msg:%s",string(msg[0:n]))
+		go write(conn)
 	}
 	conn.Close()
 }
 
 func write(conn net.Conn){
 	p := &Proto{}
-	p.SeqId = 1;
-	p.Operation = 1;
-	p.Ver = 1;
+	p.SeqId = 101;
+	p.Operation = 102;
+	p.Ver = 103;
 	p.Body = []byte("");
 	p.WriteTcp(conn)
 }
