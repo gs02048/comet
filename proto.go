@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"errors"
+	"net"
 )
 
 var (
@@ -44,7 +45,7 @@ type Proto struct {
 	Body json.RawMessage	`json:"body"`
 }
 
-func (p *Proto) ReadTcp(r io.Reader) (err error){
+func (p *Proto) ReadTcp(r net.Conn) (err error){
 	var (
 		bodyLen   int
 		headerLen int16
@@ -76,7 +77,7 @@ func (p *Proto) ReadTcp(r io.Reader) (err error){
 	return
 }
 
-func (p *Proto) WriteTcp(w io.Writer) (err error){
+func (p *Proto) WriteTcp(w net.Conn) (err error){
 	var (
 		buf     []byte
 		packLen int32
