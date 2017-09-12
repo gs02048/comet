@@ -91,6 +91,8 @@ func (p *Proto) WriteTcp(w *net.TCPConn) (err error){
 	BigEndian.PutInt32(buf[OperationOffset:], p.Operation)
 	BigEndian.PutInt32(buf[SeqIdOffset:], p.SeqId)
 	copy(buf[RawHeaderSize:],p.Body)
-	w.Write(buf)
-	return
+	if _,err := w.Write(buf);err != nil{
+		return err
+	}
+	return nil
 }
