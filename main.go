@@ -3,6 +3,7 @@ package main
 import (
 	log "github.com/alecthomas/log4go"
 	"net"
+	"comet/libs"
 )
 func main(){
 	startTcp("localhost:5333")
@@ -19,6 +20,11 @@ func startTcp(bind string)error{
 }
 
 func tcpListen(bind string){
+	var (
+		conn *net.TCPConn
+		err error
+	)
+
 	addr,err := net.ResolveTCPAddr("tcp",bind)
 	if err != nil{
 		log.Error("resolveTcpAddr:%s  error:%s",bind,err)
@@ -37,17 +43,26 @@ func tcpListen(bind string){
 		}
 
 	}()
+
 	for{
 		log.Debug("start accept")
-		conn,err := l.AcceptTCP()
+		conn,err = l.AcceptTCP()
 		if err != nil{
 			log.Error("listenner.AcceptTCP err:%s",err)
-			continue
+			return
 		}
 		if err := conn.SetKeepAlive(false);err != nil{
 			log.Error("conn.SetKeepAlive err:%s",err)
 			conn.Close()
-			continue
+			return
+		}
+		if err = conn.SetReadBuffer(1024);err != nil{
+			log.Error("conn.SetReadBuffer() error(%v)",err)
+			return
+		}
+		if err = conn.SetWriteBuffer(2048);err != nil{
+			log.Error("conn.setWriteBuffer() error(%v)",err)
+			return
 		}
 		go handleTcpConn(conn)
 	}
@@ -56,26 +71,29 @@ func tcpListen(bind string){
 	}
 }
 
-func handleTcpConn(conn net.Conn){
+func handleTcpConn(conn *net.TCPConn){
 	log.Info("hello")
+	p := &libs.Proto{}
 	for{
-		var msg [100]byte
-		n,err := conn.Read(msg[0:])
-		if err != nil{
-			log.Info("conn.Read err:%s",err)
+		if err := p.ReadTcp(conn);err!=nil{
+			log.Error("readtcp err:%s",err)
 			break
 		}
-		log.Debug("msg:%s",string(msg[0:n]))
+		log.Debug(p.SeqId)
 		go write(conn)
 	}
 	conn.Close()
 }
 
-func write(conn net.Conn){
-	p := &Proto{}
+func write(conn *net.TCPConn){
+	p := &libs.Proto{}
 	p.SeqId = 101;
 	p.Operation = 102;
 	p.Ver = 103;
 	p.Body = []byte("");
 	p.WriteTcp(conn)
+}
+
+func dispatchTcp(conn *net.TCPConn){
+
 }

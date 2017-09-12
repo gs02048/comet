@@ -1,4 +1,4 @@
-package main
+package libs
 
 var BigEndian bigEndian
 
@@ -21,4 +21,3 @@ func (bigEndian) PutInt32(b []byte, v int32) {
 	b[2] = byte(v >> 8)
 	b[3] = byte(v)
 }
-

@@ -1,4 +1,5 @@
-package main
+package libs
+
 
 import (
 	"encoding/json"
@@ -44,7 +45,7 @@ type Proto struct {
 	Body json.RawMessage	`json:"body"`
 }
 
-func (p *Proto) ReadTcp(r net.Conn) (err error){
+func (p *Proto) ReadTcp(r *net.TCPConn) (err error){
 	var (
 		bodyLen   int
 		headerLen int16
@@ -53,7 +54,7 @@ func (p *Proto) ReadTcp(r net.Conn) (err error){
 
 	head := [RawHeaderSize]byte{}
 	if _,err := r.Read(head[0:]);err != nil{
-		return nil
+		return err
 	}
 	packLen = BigEndian.Int32(head[PackOffset:HeaderOffset])
 	headerLen = BigEndian.Int16(head[HeaderOffset:VerOffset])
@@ -76,7 +77,7 @@ func (p *Proto) ReadTcp(r net.Conn) (err error){
 	return
 }
 
-func (p *Proto) WriteTcp(w net.Conn) (err error){
+func (p *Proto) WriteTcp(w *net.TCPConn) (err error){
 	var (
 		buf     []byte
 		packLen int32
