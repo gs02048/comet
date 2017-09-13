@@ -5,6 +5,7 @@ import (
 	"comet/libs"
 	log "github.com/alecthomas/log4go"
 	"time"
+	"comet/define"
 )
 
 func startTcp(bind string)error{
@@ -68,19 +69,42 @@ func tcpListen(bind string){
 }
 
 func handleTcpConn(conn *net.TCPConn){
+	var (
+		//uid int64
+		rid string
+		err error
+	)
 	p := &libs.Proto{}
+	if err := p.ReadTcp(conn);err!=nil{
+		log.Error("readtcp err:%s",err)
+		conn.Close()
+		return
+	}
+	if p.Operation != define.OP_AUTH{
+		conn.Close()
+		return
+	}
+	if _,rid,err = UserAuth(p.Body);err != nil{
+		log.Error("auth err:%s",err)
+		conn.Close()
+		return
+	}
+	elem,_ := R.Add(rid,conn)
 	for{
 		if err := p.ReadTcp(conn);err!=nil{
 			log.Error("readtcp err:%s",err)
 			break
 		}
+
 		log.Debug(p.SeqId)
-		go write(conn)
 	}
+	R.Delete(rid,elem)
 	conn.Close()
 }
 
+
 func write(conn *net.TCPConn){
+
 	p := &libs.Proto{}
 	p.SeqId = 101;
 	p.Operation = 102;
